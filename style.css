@@ -1,0 +1,92 @@
+/* ---------- Variables : couleurs et tailles réutilisables ---------- */
+:root {
+  --ciel-haut: #7ec8f2;
+  --ciel-bas: #e6f6ff;
+  --fond-page: #fff6e0;
+  --texte: #2b2b2b;
+  --accent: #e4572e;
+  --accent-fonce: #b9411f;
+  --rayon: 12px;
+}
+
+/* ---------- Base ---------- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--fond-page);
+  color: var(--texte);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+main {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1rem;
+  text-align: center;
+}
+
+h1 {
+  margin: 0.5rem 0 1rem;
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+}
+
+/* ---------- Tableau de bord ---------- */
+#tableau-de-bord {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+#tableau-de-bord p {
+  margin: 0;
+}
+
+/* ---------- Zone de jeu ---------- */
+#scene {
+  display: block;
+  width: 100%;            /* s'adapte à la largeur de l'écran */
+  height: auto;
+  aspect-ratio: 9 / 5;    /* doit correspondre à la taille donnée dans script.js (900 x 500) */
+  background: linear-gradient(var(--ciel-haut), var(--ciel-bas));
+  border: 3px solid var(--texte);
+  border-radius: var(--rayon);
+  touch-action: none;     /* empêche la page de défiler quand on tire au doigt */
+  cursor: grab;
+}
+
+#scene:active {
+  cursor: grabbing;
+}
+
+/* ---------- Message ---------- */
+#message {
+  min-height: 1.5em;      /* évite que la page saute quand le texte change */
+  margin: 0.75rem 0;
+}
+
+/* ---------- Bouton ---------- */
+#bouton-rejouer {
+  padding: 0.6rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--rayon);
+  cursor: pointer;
+}
+
+#bouton-rejouer:hover {
+  background: var(--accent-fonce);
+}
+
+#bouton-rejouer:focus-visible {
+  outline: 3px solid var(--texte);
+  outline-offset: 2px;
+}

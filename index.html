@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catapulte à conserves</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Catapulte à conserves</h1>
+
+    <section id="tableau-de-bord" aria-live="polite">
+      <p>Tirs : <span id="compteur-tirs">0</span></p>
+      <p>Boîtes tombées : <span id="compteur-boites">0</span> / <span id="total-boites">0</span></p>
+    </section>
+
+    <canvas id="scene" aria-label="Zone de jeu : une catapulte et une pile de boîtes de conserve"></canvas>
+
+    <p id="message" aria-live="polite">Tire la boule vers le bas-gauche, puis relâche !</p>
+
+    <button id="bouton-rejouer" type="button">Rejouer</button>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/matter-js@0.20.0/build/matter.min.js" crossorigin="anonymous" defer></script>
+  <script src="script.js" defer></script>
+</body>
