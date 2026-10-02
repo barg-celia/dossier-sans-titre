@@ -39,7 +39,10 @@ const HAUTEUR_BOITE = 50;
 const SOL_Y = 470;                         // hauteur du dessus du sol
 const PLATEFORME_X = 700;                  // centre de la plateforme
 const PLATEFORME_Y = 420;                  // hauteur du dessus de la plateforme
+const PLATEFORME_DEMI_LARGEUR = 110;       // la plateforme fait 220 de large
 const SEUIL_CHUTE = 430;                   // une boîte plus bas que ça est "tombée"
+const DISTANCE_CHUTE = 40;                 // une boîte déplacée de plus de 40 px est "tombée"
+const ANGLE_CHUTE = 0.8;                   // une boîte penchée de plus de ~45° est "tombée" (radians)
 const DELAI_RECHARGE = 2000;               // millisecondes avant un nouveau projectile
 const COULEURS_BOITES = ["#e4572e", "#f2a541", "#4caf50", "#4a90d9"];
 
@@ -71,7 +74,7 @@ const sol = Bodies.rectangle(LARGEUR / 2, SOL_Y + 20, LARGEUR, 40, {
   render: { fillStyle: "#6dbb4a", strokeStyle: "#4a8a2f", lineWidth: 2 }
 });
 
-const plateforme = Bodies.rectangle(PLATEFORME_X, PLATEFORME_Y + 25, 220, 50, {
+const plateforme = Bodies.rectangle(PLATEFORME_X, PLATEFORME_Y + 25, PLATEFORME_DEMI_LARGEUR * 2, 50, {
   isStatic: true,
   render: { fillStyle: "#a9743f", strokeStyle: "#5b3a1e", lineWidth: 2 }
 });
@@ -109,7 +112,7 @@ function creerBoites() {
     for (let colonne = 0; colonne < nombre; colonne++) {
       const x = PLATEFORME_X + (colonne - (nombre - 1) / 2) * pas;
       const y = yBas - ligne * (HAUTEUR_BOITE + 1);
-      Composite.add(groupe, Bodies.rectangle(x, y, LARGEUR_BOITE, HAUTEUR_BOITE, {
+      const boite = Bodies.rectangle(x, y, LARGEUR_BOITE, HAUTEUR_BOITE, {
         chamfer: { radius: 4 },
         friction: 0.6,
         frictionStatic: 1,
@@ -118,7 +121,9 @@ function creerBoites() {
           strokeStyle: "#444",
           lineWidth: 2
         }
-      }));
+      });
+      boite.plugin.depart = { x: x, y: y }; // on retient où la boîte se trouvait au départ
+      Composite.add(groupe, boite);
     }
   }
   return groupe;
@@ -131,6 +136,24 @@ function creerProjectile() {
     collisionFilter: { category: CAT_PROJECTILE },
     render: { fillStyle: "#3b3b3b", strokeStyle: "#111", lineWidth: 2 }
   });
+}
+
+// Une boîte est "tombée" si elle n'est plus à sa place dans la tour
+function estTombee(boite) {
+  // 1. elle est sortie de la plateforme ou descendue plus bas qu'elle
+  const horsPlateforme =
+    boite.position.x < PLATEFORME_X - PLATEFORME_DEMI_LARGEUR ||
+    boite.position.x > PLATEFORME_X + PLATEFORME_DEMI_LARGEUR;
+  if (horsPlateforme || boite.position.y > SEUIL_CHUTE) return true;
+
+  // 2. elle s'est déplacée par rapport à sa position de départ
+  const dx = boite.position.x - boite.plugin.depart.x;
+  const dy = boite.position.y - boite.plugin.depart.y;
+  if (Math.sqrt(dx * dx + dy * dy) > DISTANCE_CHUTE) return true;
+
+  // 3. elle est penchée ou renversée (l'angle est ramené entre -180° et 180°)
+  const angle = Math.atan2(Math.sin(boite.angle), Math.cos(boite.angle));
+  return Math.abs(angle) > ANGLE_CHUTE;
 }
 
 /* ---------------------------------------------------------------------
@@ -237,7 +260,7 @@ Events.on(moteur, "afterUpdate", () => {
   }
 
   // Comptage des boîtes tombées
-  const n = boites.bodies.filter((b) => b.position.y > SEUIL_CHUTE).length;
+  const n = boites.bodies.filter(estTombee).length;
   if (n !== boitesTombees) {
     boitesTombees = n;
     majAffichage();
