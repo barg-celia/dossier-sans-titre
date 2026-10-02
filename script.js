@@ -20,7 +20,7 @@ if (typeof Matter === "undefined") {
 
 // On récupère les outils de Matter.js dont on a besoin
 const {
-  Engine, Render, Runner, Bodies, Body, Composite,
+  Engine, Render, Runner, Bodies, Composite,
   Constraint, Mouse, MouseConstraint, Events
 } = Matter;
 
@@ -37,7 +37,7 @@ const LIGNES = 4;
 const LARGEUR_BOITE = 36;
 const HAUTEUR_BOITE = 50;
 const SOL_Y = 470;                         // hauteur du dessus du sol
-const PLATEFORME_X = 560;                  // centre de la plateforme
+const PLATEFORME_X = 500;                  // centre de la plateforme
 const PLATEFORME_Y = 420;                  // hauteur du dessus de la plateforme
 const PLATEFORME_DEMI_LARGEUR = 110;       // la plateforme fait 220 de large
 const SEUIL_CHUTE = 430;                   // une boîte plus bas que ça est "tombée"
@@ -101,20 +101,18 @@ Composite.add(moteur.world, [sol, plateforme, murDroit, base, poteau]);
 /* ---------------------------------------------------------------------
    3. BOÎTES DE CONSERVE ET PROJECTILE (fonctions qui fabriquent)
    --------------------------------------------------------------------- */
-// Les boîtes sont empilées "en quinconce" (comme des briques) et posées sans jeu.
-// Elles sont FIXES (isStatic) au départ : la tour ne bouge pas avant le premier tir.
+// Les boîtes sont empilées "en quinconce" (comme des briques) : c'est beaucoup plus stable
 function creerBoites() {
   const groupe = Composite.create();
-  const pas = LARGEUR_BOITE + 2;                  // écart entre deux boîtes d'une ligne
-  const yBas = PLATEFORME_Y - HAUTEUR_BOITE / 2;  // centre des boîtes de la ligne du bas
+  const pas = LARGEUR_BOITE + 2;                       // écart entre deux boîtes d'une ligne
+  const yBas = PLATEFORME_Y - HAUTEUR_BOITE / 2 - 1;   // centre des boîtes de la ligne du bas
 
   for (let ligne = 0; ligne < LIGNES; ligne++) {
     const nombre = ligne % 2 === 0 ? COLONNES : COLONNES - 1;
     for (let colonne = 0; colonne < nombre; colonne++) {
       const x = PLATEFORME_X + (colonne - (nombre - 1) / 2) * pas;
-      const y = yBas - ligne * HAUTEUR_BOITE;
+      const y = yBas - ligne * (HAUTEUR_BOITE + 1);
       const boite = Bodies.rectangle(x, y, LARGEUR_BOITE, HAUTEUR_BOITE, {
-        isStatic: true,
         chamfer: { radius: 4 },
         friction: 0.6,
         frictionStatic: 1,
@@ -129,12 +127,6 @@ function creerBoites() {
     }
   }
   return groupe;
-}
-
-// Rend les boîtes mobiles : appelé au premier tir
-function libererBoites() {
-  boites.bodies.forEach((boite) => Body.setStatic(boite, false));
-  boitesLibres = true;
 }
 
 function creerProjectile() {
@@ -204,7 +196,6 @@ const elMessage = document.getElementById("message");
 const boutonRejouer = document.getElementById("bouton-rejouer");
 
 let boites = null;          // la pile de boîtes
-let boitesLibres = false;   // les boîtes sont-elles devenues mobiles ?
 let projectile = null;      // le projectile actuel
 let tirs = 0;
 let boitesTombees = 0;
@@ -231,7 +222,6 @@ function lancer() {
   elastique.bodyB = null;
   elastique.render.visible = false;
   projectile.collisionFilter.category = CAT_LANCE; // on ne peut plus le rattraper
-  if (!boitesLibres) libererBoites();              // la tour devient mobile au premier tir
   tirs++;
   majAffichage();
   minuteur = setTimeout(recharger, DELAI_RECHARGE);
@@ -249,7 +239,6 @@ function nouvellePartie() {
   if (projectile) Composite.remove(moteur.world, projectile);
 
   boites = creerBoites();
-  boitesLibres = false;
   Composite.add(moteur.world, boites);
   accrocherNouveauProjectile();
 
